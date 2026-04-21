@@ -24,10 +24,7 @@
 // Forward declarations — avoid including heavy wallet headers here
 class CWallet;
 
-// SecureString from Bitcoin — zero-fills on destruction
-typedef std::basic_string<char,
-    std::char_traits<char>,
-    secure_allocator<char>> SecureString;
+#include "allocators/securestring.h"
 
 namespace BIP39Wallet {
 
