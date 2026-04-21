@@ -23,7 +23,6 @@
 
 // Forward declarations — avoid including heavy wallet headers here
 class CWallet;
-class CKeyingMaterial;
 
 // SecureString from Bitcoin — zero-fills on destruction
 typedef std::basic_string<char,
