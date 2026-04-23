@@ -23,8 +23,12 @@
 
 // Forward declarations — avoid including heavy wallet headers here
 class CWallet;
+class CKeyingMaterial;
 
-#include "allocators/securestring.h"
+// SecureString from Bitcoin — zero-fills on destruction
+typedef std::basic_string<char,
+    std::char_traits<char>,
+    secure_allocator<char>> SecureString;
 
 namespace BIP39Wallet {
 
@@ -111,5 +115,38 @@ constexpr int entropyBits(WordCount wc) noexcept {
     return (static_cast<int>(wc) * 11 * 32) / 33;
     // Derivation: totalBits = words * 11; CS = totalBits / 33; ENT = totalBits - CS
 }
+
+
+/**
+ * @brief Derive a 24-word BIP39 recovery mnemonic from a wallet passphrase.
+ *
+ * Uses PBKDF2-HMAC-SHA512 to derive 32 bytes of entropy from the passphrase,
+ * then encodes those bytes as a 24-word BIP39 mnemonic.  The same passphrase
+ * always produces the same mnemonic, so this can be reversed with
+ * passphraseFromMnemonic().
+ *
+ * This does NOT touch the wallet or any key material.
+ *
+ * @param passphrase   The wallet encryption passphrase chosen by the user.
+ * @param[out] mnemonic  The 24-word recovery phrase on success.
+ * @return Result::OK on success, Result::ERR_OPENSSL on derivation failure.
+ */
+Result mnemonicFromPassphrase(const SecureString& passphrase,
+                               SecureString& mnemonic);
+
+/**
+ * @brief Recover the wallet passphrase from a 24-word BIP39 recovery mnemonic.
+ *
+ * Reverses mnemonicFromPassphrase(): extracts the 32 entropy bytes from the
+ * mnemonic and returns them encoded as a 64-char hex string — which is the
+ * passphrase that was used to encrypt the wallet.
+ *
+ * @param mnemonic       The 24-word recovery phrase.
+ * @param[out] passphrase  The recovered passphrase on success.
+ * @return Result::OK on success, Result::ERR_MNEMONIC_INVALID if mnemonic
+ *         is not a valid BIP39 phrase, Result::ERR_INTERNAL otherwise.
+ */
+Result passphraseFromMnemonic(const SecureString& mnemonic,
+                               SecureString& passphrase);
 
 } // namespace BIP39Wallet
